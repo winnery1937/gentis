@@ -31,7 +31,7 @@ class UserRepository extends ServiceEntityRepository  implements UserLoaderInter
         $user = $this->findOneBy(['email' => $identifier]);
 
         if (!$user) {
-            throw new Exception(sprintf('User with identifier "%s" not found', $identifier));
+            throw new Exception('authentication failed');
         }
 
         return $user;

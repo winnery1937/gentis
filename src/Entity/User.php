@@ -7,9 +7,12 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-class User  implements UserInterface
+#[UniqueEntity('email')]
+class User  implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -36,6 +39,12 @@ class User  implements UserInterface
 
     #[ORM\Column]
     private array $roles = [];
+
+    #[ORM\Column(length: 255)]
+    private ?string $password = null;
+
+    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?Oauth2Client $oauth2Client = null;
 
     public function __construct()
     {
@@ -149,6 +158,35 @@ class User  implements UserInterface
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
+
+        return $this;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): static
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
+    public function getOauth2Client(): ?Oauth2Client
+    {
+        return $this->oauth2Client;
+    }
+
+    public function setOauth2Client(Oauth2Client $oauth2Client): static
+    {
+        // set the owning side of the relation if necessary
+        if ($oauth2Client->getUser() !== $this) {
+            $oauth2Client->setUser($this);
+        }
+
+        $this->oauth2Client = $oauth2Client;
 
         return $this;
     }
